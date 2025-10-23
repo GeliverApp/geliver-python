@@ -14,7 +14,9 @@ Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu 
 - Adım Adım
 - Webhooklar
 - Testler
-- Modeller ve Notlar
+- Modeller
+- Enum Kullanımı
+- Notlar ve İpuçları
 
 ---
 
@@ -127,7 +129,7 @@ print('Tracking URL:', getattr(tx.shipment, 'trackingUrl', None))
 
 ---
 
-## Alıcıyı ID ile oluşturma (recipientAddressID)
+## Alıcı ID'si ile oluşturma (recipientAddressID)
 
 ```python
 from geliver import CreateShipmentWithRecipientID
@@ -162,8 +164,6 @@ final = client.get_shipment(shipment.id)
 ts = getattr(final, 'trackingStatus', None)
 print('Final status:', ts.get('trackingStatusCode') if ts else None, ts.get('trackingSubStatusCode') if ts else None)
 ```
-
----
 
 ## Webhooklar
 
@@ -208,22 +208,12 @@ print('Status:', ts.get('trackingStatusCode') if ts else None, ts.get('trackingS
 
 ---
 
-## Modeller ve Notlar
+## Modeller
 
 - Shipment, Transaction, TrackingStatus, Address, ParcelTemplate, ProviderAccount, Webhook, Offer, PriceQuote ve daha fazlası.
 - Tam liste için: `geliver.models` (otomatik oluşturulan modeller).
 
-English (EN) Quick Guide
-
-- 1. Create sender address
-- 2. Create shipment via inline recipient address or recipientAddressID
-- 3. Wait for offers and accept one
-- 4. Transaction contains Shipment with barcode/tracking/labels
-- 5. Use wait_for_tracking_number or webhooks
-- 6. Download labels (PDF/HTML)
-- 7. Create returns with create_return_shipment
-
-Enum Kullanımı (TR)
+## Enum Kullanımı (TR)
 
 ```python
 from geliver.models import ShipmentDistanceUnit, ShipmentMassUnit, ShipmentLabelFileType
@@ -240,7 +230,7 @@ if getattr(shipment, 'labelFileType', None) == ShipmentLabelFileType.PDF.value:
     print("PDF etiket hazır")
 ```
 
-Notlar ve İpuçları (TR)
+## Notlar ve İpuçları (TR)
 
 - Ondalıklı alanlar (ör. length/weight) Decimal olarak işlenir; string kaynaklar hassasiyet kaybı olmadan Decimal'e dönüştürülür.
 - Teklif üretimi zaman alabilir; 1 sn aralıklarla bekleme yeterlidir.
