@@ -3,8 +3,9 @@
 Geliver Python SDK — official Python client for Geliver Kargo Pazaryeri (Shipping Marketplace) API.
 Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu sağlar.
 
-Dokümantasyon (TR): Modeller ve endpoint detayları için https://docs.geliver.com
-Documentation (EN): For detailed models and endpoints, see https://docs.geliver.com
+• Dokümantasyon (TR/EN): https://docs.geliver.io
+
+---
 
 ## İçindekiler
 
@@ -15,20 +16,29 @@ Documentation (EN): For detailed models and endpoints, see https://docs.geliver.
 - Testler
 - Modeller ve Notlar
 
-Türkçe (TR)
-- 0) Geliver Kargo API tokenı alın (https://app.geliver.io/apitokens adresinden)
-- 1) Gönderici adresi oluşturun (create_sender_address)
-- 2) Gönderiyi alıcıyı ya ID ile ya da adres nesnesiyle vererek oluşturun
-- 3) Teklifler tamamlanana kadar bekleyip en uygun teklifi kabul edin (accept_offer)
-- 4) Barkod, takip numarası, etiket URL’leri Transaction içindeki Shipment’ten okunur
-- 5) Test gönderilerinde her GET /shipments isteğinde kargo durumu bir adım ilerler; prod'da webhookları kullanın
-- 6) Etiketleri indirin (PDF ve HTML dinamik etiket)
-- 7) İade gönderisi gerekiyorsa create_return_shipment fonksiyonunu kullanın
+---
 
 ## Kurulum
+
 - `cd sdks/python && pip install -e .`
 
+---
+
+## Akış (TR)
+
+1. Geliver Kargo API tokenı alın (https://app.geliver.io/apitokens adresinden)
+2. Gönderici adresi oluşturun (create_sender_address)
+3. Gönderiyi alıcıyı ya ID ile ya da adres nesnesiyle vererek oluşturun
+4. Teklifler tamamlanana kadar bekleyip en uygun teklifi kabul edin (accept_offer)
+5. Barkod, takip numarası, etiket URL’leri Transaction içindeki Shipment’ten okunur
+6. Test gönderilerinde her GET /shipments isteğinde kargo durumu bir adım ilerler; prod'da webhookları kullanın
+7. Etiketleri indirin (PDF ve HTML dinamik etiket)
+8. İade gönderisi gerekiyorsa create_return_shipment fonksiyonunu kullanın
+
+---
+
 ## Hızlı Başlangıç
+
 ```python
 from geliver import GeliverClient, ClientOptions
 
@@ -47,8 +57,12 @@ shipment = client.create_shipment_test({
 })
 ```
 
+---
+
 ## Türkçe Akış (TR)
-1) Gönderici adresi oluşturma
+
+1. Gönderici adresi oluşturma
+
 ```python
 from geliver import GeliverClient, ClientOptions
 
@@ -68,7 +82,8 @@ sender = client.create_sender_address({
 })
 ```
 
-2) Gönderi oluşturma ve teklif kabulü (alıcıyı inline vererek)
+2. Gönderi oluşturma ve teklif kabulü (alıcıyı inline vererek)
+
 ```python
 shipment = client.create_shipment({
     "sourceCode": "API",
@@ -110,7 +125,10 @@ print('Label URL:', getattr(tx.shipment, 'labelURL', None))
 print('Tracking URL:', getattr(tx.shipment, 'trackingUrl', None))
 ```
 
+---
+
 ## Alıcıyı ID ile oluşturma (recipientAddressID)
+
 ```python
 from geliver import CreateShipmentWithRecipientID
 created_direct = client.create_shipment(CreateShipmentWithRecipientID(
@@ -123,7 +141,8 @@ created_direct = client.create_shipment(CreateShipmentWithRecipientID(
 ))
 ```
 
-3) Alıcı adresi oluşturma
+3. Alıcı adresi oluşturma
+
 ```python
 recipient = client.create_recipient_address({
     "name": "John Doe", "email": "john@example.com",
@@ -132,7 +151,8 @@ recipient = client.create_recipient_address({
 })
 ```
 
-3) Test gönderilerinde durum ilerletme (prod'da webhook önerilir)
+3. Test gönderilerinde durum ilerletme (prod'da webhook önerilir)
+
 ```python
 """Test gönderilerinde her GET /shipments çağrısı kargo durumunu bir adım ilerletir."""
 for _ in range(5):
@@ -143,7 +163,10 @@ ts = getattr(final, 'trackingStatus', None)
 print('Final status:', ts.get('trackingStatusCode') if ts else None, ts.get('trackingSubStatusCode') if ts else None)
 ```
 
+---
+
 ## Webhooklar
+
 ```python
 from fastapi import FastAPI, Request
 from geliver import verify_webhook
@@ -162,36 +185,46 @@ async def webhook(req: Request):
 ```
 
 ### Webhookları Yönetme
+
 ```python
 client.create_webhook(url="https://yourapp.test/webhooks/geliver")
 webhooks = client.list_webhooks()
 ```
 
+---
+
 ## Testler
+
 - Birim testleri için `httpx.MockTransport` kullanabilirsiniz; `sdks/python/tests` klasörüne bakın.
 - Üretilmiş modeller `geliver.models` altında yer alır (OpenAPI'den otomatik üretilir).
 
 ### Manuel takip kontrolü (isteğe bağlı)
+
 ```python
 s = client.get_shipment(shipment.id)
 ts = getattr(s, 'trackingStatus', None)
 print('Status:', ts.get('trackingStatusCode') if ts else None, ts.get('trackingSubStatusCode') if ts else None)
 ```
 
+---
+
 ## Modeller ve Notlar
+
 - Shipment, Transaction, TrackingStatus, Address, ParcelTemplate, ProviderAccount, Webhook, Offer, PriceQuote ve daha fazlası.
 - Tam liste için: `geliver.models` (otomatik oluşturulan modeller).
 
 English (EN) Quick Guide
-- 1) Create sender address
-- 2) Create shipment via inline recipient address or recipientAddressID
-- 3) Wait for offers and accept one
-- 4) Transaction contains Shipment with barcode/tracking/labels
-- 5) Use wait_for_tracking_number or webhooks
-- 6) Download labels (PDF/HTML)
-- 7) Create returns with create_return_shipment
+
+- 1. Create sender address
+- 2. Create shipment via inline recipient address or recipientAddressID
+- 3. Wait for offers and accept one
+- 4. Transaction contains Shipment with barcode/tracking/labels
+- 5. Use wait_for_tracking_number or webhooks
+- 6. Download labels (PDF/HTML)
+- 7. Create returns with create_return_shipment
 
 Enum Kullanımı (TR)
+
 ```python
 from geliver.models import ShipmentDistanceUnit, ShipmentMassUnit, ShipmentLabelFileType
 
@@ -208,18 +241,24 @@ if getattr(shipment, 'labelFileType', None) == ShipmentLabelFileType.PDF.value:
 ```
 
 Notlar ve İpuçları (TR)
+
 - Ondalıklı alanlar (ör. length/weight) Decimal olarak işlenir; string kaynaklar hassasiyet kaybı olmadan Decimal'e dönüştürülür.
 - Teklif üretimi zaman alabilir; 1 sn aralıklarla bekleme yeterlidir.
 - Test gönderisi için `client.create_shipment_test(...)` veya `test=True` alanını kullanın.
 - İlçe seçimi: districtID (number) kullanın. districtName her durumda doğru eşleşmeyebilir.
 - Şehir/İlçe seçimi: cityCode ve cityName beraber veya ayrı gönderilebilir; eşleşme açısından cityCode daha güvenilirdir. Şehir/ilçe verilerini API'den alabilirsiniz:
+
 ```python
 cities = client.list_cities('TR')
 districts = client.list_districts('TR', '34')
 ```
 
+---
+
 ## Diğer Örnekler (Python)
+
 - Sağlayıcı Hesapları (Provider Accounts)
+
 ```python
 # Create provider account
 acc = client.create_provider_account({
@@ -231,7 +270,9 @@ accounts = client.list_provider_accounts()
 # Delete account
 client.delete_provider_account(acc['id'], is_delete_account_connection=True)
 ```
+
 - Kargo Şablonları (Parcel Templates)
+
 ```python
 tpl = client.create_parcel_template({'name':'Small Box','distanceUnit':'cm','massUnit':'kg','height':'4','length':'4','weight':'1','width':'4'})
 tpls = client.list_parcel_templates()
