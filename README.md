@@ -65,6 +65,8 @@ shipment = client.create_shipment_test({
 
 1. Gönderici adresi oluşturma
 
+Her gönderici adresi için tek seferlik yapılır. Oluşan gönderici adres ID'sini saklayıp tekrar kullanılır.
+
 ```python
 from geliver import GeliverClient, ClientOptions
 
