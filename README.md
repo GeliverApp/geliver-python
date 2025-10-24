@@ -167,6 +167,22 @@ ts = getattr(final, 'trackingStatus', None)
 print('Final status:', ts.get('trackingStatusCode') if ts else None, ts.get('trackingSubStatusCode') if ts else None)
 ```
 
+---
+
+## İade Gönderisi Oluşturun
+
+```python
+returned = client.create_return_shipment(shipment.id, {
+    'willAccept': True,
+    'providerServiceCode': 'SURAT_STANDART',
+    'count': 1,
+})
+```
+
+Not:
+- `providerServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
+- `senderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
+
 ## Webhooklar
 
 ```python
