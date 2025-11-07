@@ -248,7 +248,7 @@ class GeliverClient:
         return self._request("DELETE", f"/parceltemplates/{template_id}")
 
     # ---- prices ----
-    def list_prices(self, *, paramType: str, length: float, width: float, height: float, weight: float, distanceUnit: str | None = None, massUnit: str | None = None) -> dict:
+    def list_prices(self, *, paramType: str, length: str, width: str, height: str, weight: str, distanceUnit: str | None = None, massUnit: str | None = None) -> dict:
         params = {
             "paramType": paramType,
             "length": length,

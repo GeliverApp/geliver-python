@@ -55,9 +55,12 @@ sender = client.create_sender_address({
 shipment = client.create_shipment_test({
     "sourceCode": "API", "senderAddressID": sender["id"],
     "recipientAddress": {"name": "John Doe", "email": "john@example.com", "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadikoy", "districtID": 100000, "zip": "34000"},
-    "length": 10, "width": 10, "height": 10, "distanceUnit": "cm", "weight": 1, "massUnit": "kg",
+    # Request dimensions/weight must be strings
+    "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm", "weight": "1.0", "massUnit": "kg",
 })
 ```
+
+Canlı ortamda `client.create_shipment_test(...)` yerine `client.create_shipment(...)` kullanın.
 
 ---
 
@@ -97,28 +100,29 @@ shipment = client.create_shipment({
         "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
         "districtName": "Esenyurt", "districtID": 107605, "zip": "34020",
     },
-    "length": 10, "width": 10, "height": 10, "distanceUnit": "cm",
-    "weight": 1, "massUnit": "kg",
+    "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm",
+    "weight": "1.0", "massUnit": "kg",
 })
 
 # Etiketler bazı akışlarda create sonrasında hazır olabilir; varsa hemen indirin
 pre_label = getattr(shipment, 'labelURL', None)
 if pre_label:
+    # Avoid extra GET by using direct URL
     with open('label_pre.pdf', 'wb') as f:
-        f.write(client.download_label_for_shipment(shipment.id))
+        f.write(client.download_label_by_url(shipment.labelURL))
 pre_html_url = getattr(shipment, 'responsiveLabelURL', None) or getattr(shipment, 'responsiveLabelUrl', None)
 if pre_html_url:
     with open('label_pre.html', 'w', encoding='utf-8') as f:
-        f.write(client.download_responsive_label_for_shipment(shipment.id))
+        f.write(client.download_responsive_label_by_url(shipment.responsiveLabelURL))
 
 # Teklifler create yanıtında hazır olabilir; önce onu kontrol edin
 offers = getattr(shipment, "offers", None)
-if not (offers and (float(offers.get("percentageCompleted", 0)) >= 99 or offers.get("cheapest"))):
-    # Hazır değilse, >= %99 olana kadar 1 sn aralıkla sorgulayın (backend 99'da kalabilir)
+if not (offers and (float(offers.get("percentageCompleted", 0)) == 100 or offers.get("cheapest"))):
+    # Hazır değilse, %100 olana kadar 1 sn aralıkla sorgulayın
     while True:
         s = client.get_shipment(shipment.id)
         offers = getattr(s, "offers", None)
-        if offers and (float(offers.get("percentageCompleted", 0)) >= 99 or offers.get("cheapest")):
+        if offers and (float(offers.get("percentageCompleted", 0)) == 100 or offers.get("cheapest")):
             break
         import time; time.sleep(1)
 
@@ -140,8 +144,8 @@ created_direct = client.create_shipment(CreateShipmentWithRecipientID(
     senderAddressID=sender["id"],
     recipientAddressID=recipient["id"],
     providerServiceCode="MNG_STANDART",
-    length=10, width=10, height=10, distanceUnit="cm",
-    weight=1, massUnit="kg",
+    length="10.0", width="10.0", height="10.0", distanceUnit="cm",
+    weight="1.0", massUnit="kg",
 ))
 ```
 
@@ -180,6 +184,7 @@ returned = client.create_return_shipment(shipment.id, {
 ```
 
 Not:
+
 - `providerServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
 - `senderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
 
@@ -252,7 +257,8 @@ if getattr(shipment, 'labelFileType', None) == ShipmentLabelFileType.PDF.value:
 
 - Ondalıklı alanlar (ör. length/weight) Decimal olarak işlenir; string kaynaklar hassasiyet kaybı olmadan Decimal'e dönüştürülür.
 - Teklif üretimi zaman alabilir; 1 sn aralıklarla bekleme yeterlidir.
-- Test gönderisi için `client.create_shipment_test(...)` veya `test=True` alanını kullanın.
+- Test gönderisi için `client.create_shipment_test(...)` veya `test=True` alanını kullanın; canlı ortamda `client.create_shipment(...)` çağırın.
+- Takip numarası ile takip URL'si bazı kargo firmalarında teklif kabulünün hemen ardından oluşmayabilir. Paketi kargo şubesine teslim ettiğinizde veya kargo sizden teslim aldığında bu alanlar tamamlanır. Webhooklar ile değerleri otomatik çekebilir ya da teslimden sonra `shipment` GET isteği yaparak güncel bilgileri alabilirsiniz.
 - İlçe seçimi: districtID (number) kullanın. districtName her durumda doğru eşleşmeyebilir.
 - Şehir/İlçe seçimi: cityCode ve cityName beraber veya ayrı gönderilebilir; eşleşme açısından cityCode daha güvenilirdir. Şehir/ilçe verilerini API'den alabilirsiniz:
 

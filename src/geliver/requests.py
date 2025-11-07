@@ -23,11 +23,11 @@ class CreateAddressRequest(BaseModel):
 class CreateShipmentRequestBase(BaseModel):
     sourceCode: str
     senderAddressID: str
-    length: Optional[float] = None
-    width: Optional[float] = None
-    height: Optional[float] = None
+    length: Optional[str] = None
+    width: Optional[str] = None
+    height: Optional[str] = None
     distanceUnit: Optional[str] = None
-    weight: Optional[float] = None
+    weight: Optional[str] = None
     massUnit: Optional[str] = None
     providerServiceCode: Optional[str] = None
     test: Optional[bool] = None
@@ -45,11 +45,11 @@ CreateShipmentRequest = Union[CreateShipmentWithRecipientID, CreateShipmentWithR
 
 
 class UpdatePackageRequest(BaseModel):
-    height: Optional[float] = None
-    width: Optional[float] = None
-    length: Optional[float] = None
+    height: Optional[str] = None
+    width: Optional[str] = None
+    length: Optional[str] = None
     distanceUnit: Optional[str] = None
-    weight: Optional[float] = None
+    weight: Optional[str] = None
     massUnit: Optional[str] = None
 
 

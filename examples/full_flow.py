@@ -21,28 +21,20 @@ def main():
             "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
             "districtName": "Esenyurt", "districtID": 107605, "zip": "34020",
         },
-        "length": 10, "width": 10, "height": 10, "distanceUnit": "cm", "weight": 1, "massUnit": "kg",
+    # Request dimensions/weight must be strings
+    "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm", "weight": "1.0", "massUnit": "kg",
     })
-    # Etiketler bazı akışlarda create sonrasında hazır olabilir; varsa hemen indirin
-    try:
-        if getattr(shipment, 'labelURL', None):
-            with open('label_pre.pdf', 'wb') as f:
-                f.write(client.download_label_for_shipment(shipment.id))
-        if getattr(shipment, 'responsiveLabelURL', None) or getattr(shipment, 'responsiveLabelUrl', None):
-            with open('label_pre.html', 'w', encoding='utf-8') as f:
-                f.write(client.download_responsive_label_for_shipment(shipment.id))
-    except Exception:
-        pass
+    # Etiket indirme: Teklif kabulünden sonra (Transaction) gelen URL'leri kullanabilirsiniz de; URL'lere her shipment nesnesinin içinden ulaşılır.
 
     # Teklifler create yanıtında hazır olabilir; önce onu kontrol edin
     offers = getattr(shipment, 'offers', None)
     start = time.time()
-    if not (offers and (float(offers.get('percentageCompleted', 0)) >= 99 or offers.get('cheapest'))):
-        # Hazır değilse, >= %99 olana kadar 1 sn aralıkla sorgulayın (backend 99'da kalabilir)
+    if not (offers and (float(offers.get('percentageCompleted', 0)) == 100 or offers.get('cheapest'))):
+        # Hazır değilse, %100 olana kadar 1 sn aralıkla sorgulayın
         while True:
             s = client.get_shipment(shipment.id)
             offers = getattr(s, 'offers', None)
-            if offers and (float(offers.get('percentageCompleted', 0)) >= 99 or offers.get('cheapest')):
+            if offers and (float(offers.get('percentageCompleted', 0)) == 100 or offers.get('cheapest')):
                 break
             if time.time() - start > 60:
                 raise TimeoutError('Timed out waiting for offers')
@@ -65,11 +57,14 @@ def main():
     if ts:
         print('Status:', ts.get('trackingStatusCode'), ts.get('trackingSubStatusCode'))
 
-    # Download labels
-    with open('label.pdf', 'wb') as f:
-        f.write(client.download_label_for_shipment(shipment.id))
-    with open('label.html', 'w', encoding='utf-8') as f:
-        f.write(client.download_responsive_label_for_shipment(shipment.id))
+    # Download labels using URLs from transaction.shipment (no extra GET)
+    if getattr(tx, 'shipment', None) and getattr(tx.shipment, 'labelURL', None):
+        with open('label.pdf', 'wb') as f:
+            f.write(client.download_label_by_url(getattr(tx.shipment, 'labelURL')))
+    rl2 = getattr(tx.shipment, 'responsiveLabelURL', None) if getattr(tx, 'shipment', None) else None
+    if rl2:
+        with open('label.html', 'w', encoding='utf-8') as f:
+            f.write(client.download_responsive_label_by_url(rl2))
 
 if __name__ == "__main__":
     main()
