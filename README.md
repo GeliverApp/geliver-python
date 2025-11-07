@@ -53,7 +53,7 @@ sender = client.create_sender_address({
 })
 
 shipment = client.create_shipment_test({
-    "sourceCode": "API", "senderAddressID": sender["id"],
+    "senderAddressID": sender["id"],
     "recipientAddress": {"name": "John Doe", "email": "john@example.com", "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadikoy", "districtID": 100000, "zip": "34000"},
     # Request dimensions/weight must be strings
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm", "weight": "1.0", "massUnit": "kg",
@@ -93,7 +93,6 @@ sender = client.create_sender_address({
 
 ```python
 shipment = client.create_shipment({
-    "sourceCode": "API",
     "senderAddressID": sender["id"],
     "recipientAddress": {
         "name": "John Doe", "email": "john@example.com", "phone": "+905051234568",
@@ -130,7 +129,7 @@ cheapest = offers["cheapest"]
 tx = client.accept_offer(cheapest["id"])  # purchase label
 print('Barcode:', getattr(tx.shipment, 'barcode', None))
 print('Label URL:', getattr(tx.shipment, 'labelURL', None))
-print('Tracking URL:', getattr(tx.shipment, 'trackingUrl', None))
+print('Tracking URL:', getattr(tx.shipment, 'trackingUrl', None)) # Bu alan bazı firmalarda gönderici şubesine teslimden veya kurye sizden teslim aldıktan sonra dolar. Bu sebeple webhook kullarak bu alanı alabilirsiniz.
 ```
 
 ---
@@ -140,7 +139,6 @@ print('Tracking URL:', getattr(tx.shipment, 'trackingUrl', None))
 ```python
 from geliver import CreateShipmentWithRecipientID
 created_direct = client.create_shipment(CreateShipmentWithRecipientID(
-    sourceCode="API",
     senderAddressID=sender["id"],
     recipientAddressID=recipient["id"],
     providerServiceCode="MNG_STANDART",
@@ -242,7 +240,6 @@ print('Status:', ts.get('trackingStatusCode') if ts else None, ts.get('trackingS
 from geliver.models import ShipmentDistanceUnit, ShipmentMassUnit, ShipmentLabelFileType
 
 shipment = client.create_shipment({
-    "sourceCode": "API",
     "senderAddressID": sender["id"],
     "recipientAddressID": recipient["id"],
     "distanceUnit": ShipmentDistanceUnit.cm.value,

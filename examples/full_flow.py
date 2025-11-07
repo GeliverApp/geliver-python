@@ -15,12 +15,13 @@ def main():
 
     # Alıcı adresini sunucuda kaydetmeden inline gönderin
     shipment = client.create_shipment_test({
-        "sourceCode": "API", "senderAddressID": sender["id"],
+        "senderAddressID": sender["id"],
         "recipientAddress": {
             "name": "John Doe", "email": "john@example.com", "phone": "+905051234568",
             "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
             "districtName": "Esenyurt", "districtID": 107605, "zip": "34020",
         },
+        "order": {"orderNumber": "ABC12333322", "sourceIdentifier": "https://magazaadresiniz.com", "totalAmount": "150", "totalAmountCurrency": "TL"},
     # Request dimensions/weight must be strings
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm", "weight": "1.0", "massUnit": "kg",
     })
@@ -48,14 +49,14 @@ def main():
     print("Tracking URL:", getattr(tx.shipment, 'trackingUrl', None))
 
     # Test gönderilerinde her GET /shipments çağrısı kargo durumunu bir adım ilerletir; prod'da webhook/manuel kontrol önerilir.
-    for _ in range(5):
-        time.sleep(1)
-        client.get_shipment(shipment.id)
-    latest = client.get_shipment(shipment.id)
-    print("Tracking number (refresh):", getattr(latest, 'trackingNumber', None))
-    ts = getattr(latest, 'trackingStatus', None)
-    if ts:
-        print('Status:', ts.get('trackingStatusCode'), ts.get('trackingSubStatusCode'))
+    #for _ in range(5):
+    #    time.sleep(1)
+    #    client.get_shipment(shipment.id)
+    #latest = client.get_shipment(shipment.id)
+    #print("Tracking number (refresh):", getattr(latest, 'trackingNumber', None))
+    #ts = getattr(latest, 'trackingStatus', None)
+    #if ts:
+    #    print('Status:', ts.get('trackingStatusCode'), ts.get('trackingSubStatusCode'))
 
     # Download labels using URLs from transaction.shipment (no extra GET)
     if getattr(tx, 'shipment', None) and getattr(tx.shipment, 'labelURL', None):

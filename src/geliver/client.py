@@ -92,6 +92,9 @@ class GeliverClient:
         Returns a typed Shipment model.
         """
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else body
+        if isinstance(payload.get("order"), dict):
+            if not payload["order"].get("sourceCode"):
+                payload["order"]["sourceCode"] = "API"
         for key in ("length","width","height","weight"):
             if key in payload and payload[key] is not None:
                 payload[key] = str(payload[key])
@@ -138,6 +141,9 @@ class GeliverClient:
 
     def create_shipment_test(self, body: Any) -> Shipment:
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else dict(body)
+        if isinstance(payload.get("order"), dict):
+            if not payload["order"].get("sourceCode"):
+                payload["order"]["sourceCode"] = "API"
         for key in ("length","width","height","weight"):
             if key in payload and payload[key] is not None:
                 payload[key] = str(payload[key])
