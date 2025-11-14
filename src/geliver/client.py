@@ -102,6 +102,8 @@ class GeliverClient:
         if isinstance(payload.get("order"), dict):
             if not payload["order"].get("sourceCode"):
                 payload["order"]["sourceCode"] = "API"
+        if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):
+            raise ValueError('recipientAddress.phone is required')
         for key in ("length","width","height","weight"):
             if key in payload and payload[key] is not None:
                 payload[key] = str(payload[key])
@@ -151,6 +153,8 @@ class GeliverClient:
         if isinstance(payload.get("order"), dict):
             if not payload["order"].get("sourceCode"):
                 payload["order"]["sourceCode"] = "API"
+        if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):
+            raise ValueError('recipientAddress.phone is required')
         for key in ("length","width","height","weight"):
             if key in payload and payload[key] is not None:
                 payload[key] = str(payload[key])
@@ -163,6 +167,20 @@ class GeliverClient:
         including barcode, labelURL, and tracking metadata.
         """
         return Transaction.model_validate(self._request("POST", "/transactions", json_body={"offerID": offer_id}))
+
+    def create_transaction(self, body: Any) -> Transaction:
+        """One-step label purchase. Post shipment details directly to /transactions.
+        Body follows create_shipment fields (recipientAddress or recipientAddressID, dimensions as strings).
+        """
+        payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else dict(body)
+        if isinstance(payload.get("order"), dict) and not payload["order"].get("sourceCode"):
+            payload["order"]["sourceCode"] = "API"
+        if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):
+            raise ValueError('recipientAddress.phone is required')
+        for key in ("length","width","height","weight"):
+            if key in payload and payload[key] is not None:
+                payload[key] = str(payload[key])
+        return Transaction.model_validate(self._request("POST", "/transactions", json_body=payload))
 
     # ---- helpers ----
     # Removed wait_for_offers helper; prefer webhooks or manual lightweight polling in tests.
@@ -186,11 +204,17 @@ class GeliverClient:
 
     def create_sender_address(self, body: dict) -> dict:
         data = dict(body)
+        if not data.get('phone'):
+            raise ValueError('phone is required for sender addresses')
+        if not data.get('zip'):
+            raise ValueError('zip is required for sender addresses')
         data["isRecipientAddress"] = False
         return self.create_address(data)
 
     def create_recipient_address(self, body: dict) -> dict:
         data = dict(body)
+        if not data.get('phone'):
+            raise ValueError('phone is required for recipient addresses')
         data["isRecipientAddress"] = True
         return self.create_address(data)
 

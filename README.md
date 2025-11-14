@@ -257,6 +257,14 @@ if getattr(shipment, 'labelFileType', None) == ShipmentLabelFileType.PDF.value:
 - Teklif üretimi zaman alabilir; 1 sn aralıklarla bekleme yeterlidir.
 - Test gönderisi için `client.create_shipment_test(...)` veya `test=True` alanını kullanın; canlı ortamda `client.create_shipment(...)` çağırın.
 - Takip numarası ile takip URL'si bazı kargo firmalarında teklif kabulünün hemen ardından oluşmayabilir. Paketi kargo şubesine teslim ettiğinizde veya kargo sizden teslim aldığında bu alanlar tamamlanır. Webhooklar ile değerleri otomatik çekebilir ya da teslimden sonra `shipment` GET isteği yaparak güncel bilgileri alabilirsiniz.
+- Adres kuralları: phone alanı hem gönderici hem alıcı adresleri için zorunludur. Zip alanı gönderici adresi için zorunludur; alıcı adresi için opsiyoneldir. `create_sender_address` phone/zip eksikse, `create_recipient_address` phone eksikse hata verir.
+
+## Örnekler
+
+- Tam akış: `sdks/python/examples/full_flow.py`
+- Tek aşamada gönderi (Create Transaction): `sdks/python/examples/onestep.py`
+- Kapıda ödeme: `sdks/python/examples/pod.py`
+- Kendi anlaşmanızla etiket satın alma: `sdks/python/examples/ownagreement.py`
 
 - Şehir/İlçe seçimi: cityCode ve cityName beraber veya ayrı gönderilebilir; eşleşme açısından cityCode daha güvenilirdir. Şehir/ilçe verilerini API'den alabilirsiniz:
 
