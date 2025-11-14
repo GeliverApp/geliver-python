@@ -1,4 +1,5 @@
-# Geliver Python SDK
+# Geliver Python SDK  
+[![PyPI](https://img.shields.io/pypi/v/geliver.svg)](https://pypi.org/project/geliver/) [![Python Versions](https://img.shields.io/pypi/pyversions/geliver.svg)](https://pypi.org/project/geliver/)
 
 Geliver Python SDK — official Python client for Geliver Kargo Pazaryeri (Shipping Marketplace) API.
 Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu sağlar.
@@ -49,12 +50,12 @@ client = GeliverClient(ClientOptions(token="YOUR_TOKEN"))
 sender = client.create_sender_address({
     "name": "ACME Inc.", "email": "ops@acme.test",
     "address1": "Street 1", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
-    "districtName": "Esenyurt", "districtID": 107605, "zip": "34020",
+    "districtName": "Esenyurt", "zip": "34020",
 })
 
 shipment = client.create_shipment_test({
     "senderAddressID": sender["id"],
-    "recipientAddress": {"name": "John Doe", "email": "john@example.com", "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadikoy", "districtID": 100000, "zip": "34000"},
+    "recipientAddress": {"name": "John Doe", "email": "john@example.com", "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadikoy", "zip": "34000"},
     # Request dimensions/weight must be strings
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm", "weight": "1.0", "massUnit": "kg",
 })
@@ -84,7 +85,7 @@ sender = client.create_sender_address({
     "cityName": "Istanbul",
     "cityCode": "34",
     "districtName": "Esenyurt",
-    "districtID": 107605,
+    
     "zip": "34020",
 })
 ```
@@ -97,7 +98,7 @@ shipment = client.create_shipment({
     "recipientAddress": {
         "name": "John Doe", "email": "john@example.com", "phone": "+905051234568",
         "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
-        "districtName": "Esenyurt", "districtID": 107605, "zip": "34020",
+        "districtName": "Esenyurt", "zip": "34020",
     },
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm",
     "weight": "1.0", "massUnit": "kg",
@@ -153,7 +154,7 @@ created_direct = client.create_shipment(CreateShipmentWithRecipientID(
 recipient = client.create_recipient_address({
     "name": "John Doe", "email": "john@example.com",
     "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
-    "districtName": "Kadikoy", "districtID": 100000, "zip": "34000",
+    "districtName": "Kadikoy", "zip": "34000",
 })
 ```
 
@@ -256,7 +257,7 @@ if getattr(shipment, 'labelFileType', None) == ShipmentLabelFileType.PDF.value:
 - Teklif üretimi zaman alabilir; 1 sn aralıklarla bekleme yeterlidir.
 - Test gönderisi için `client.create_shipment_test(...)` veya `test=True` alanını kullanın; canlı ortamda `client.create_shipment(...)` çağırın.
 - Takip numarası ile takip URL'si bazı kargo firmalarında teklif kabulünün hemen ardından oluşmayabilir. Paketi kargo şubesine teslim ettiğinizde veya kargo sizden teslim aldığında bu alanlar tamamlanır. Webhooklar ile değerleri otomatik çekebilir ya da teslimden sonra `shipment` GET isteği yaparak güncel bilgileri alabilirsiniz.
-- İlçe seçimi: districtID (number) kullanın. districtName her durumda doğru eşleşmeyebilir.
+
 - Şehir/İlçe seçimi: cityCode ve cityName beraber veya ayrı gönderilebilir; eşleşme açısından cityCode daha güvenilirdir. Şehir/ilçe verilerini API'den alabilirsiniz:
 
 ```python

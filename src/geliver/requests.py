@@ -14,7 +14,7 @@ class CreateAddressRequest(BaseModel):
     cityName: str
     cityCode: str
     districtName: str
-    districtID: int
+    districtID: Optional[int] = None
     zip: str
     shortName: Optional[str] = None
     isRecipientAddress: Optional[bool] = None

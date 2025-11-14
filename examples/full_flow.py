@@ -10,7 +10,7 @@ def main():
     sender = client.create_sender_address({
         "name": "ACME Inc.", "email": "ops@acme.test", "phone": "+905051234567",
         "address1": "Street 1", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
-        "districtName": "Esenyurt", "districtID": 107605, "zip": "34020", "isRecipientAddress": False,
+        "districtName": "Esenyurt", "zip": "34020", "isRecipientAddress": False,
     })
 
     # Alıcı adresini sunucuda kaydetmeden inline gönderin
@@ -19,7 +19,7 @@ def main():
         "recipientAddress": {
             "name": "John Doe", "email": "john@example.com", "phone": "+905051234568",
             "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
-            "districtName": "Esenyurt", "districtID": 107605, "zip": "34020",
+            "districtName": "Esenyurt", "zip": "34020",
         },
         "order": {"orderNumber": "ABC12333322", "sourceIdentifier": "https://magazaadresiniz.com", "totalAmount": "150", "totalAmountCurrency": "TL"},
     # Request dimensions/weight must be strings
@@ -41,7 +41,22 @@ def main():
                 raise TimeoutError('Timed out waiting for offers')
             time.sleep(1)
 
-    tx = client.accept_offer(offers["cheapest"]["id"]) 
+    if not offers.get("cheapest"):
+        print("Error: No cheapest offer available")
+        sys.exit(1)
+
+    try:
+        tx = client.accept_offer(offers["cheapest"]["id"])
+    except Exception as e:
+        print(f"Accept offer error: {e}")
+        # If it's an API error with response details, try to print them
+        if hasattr(e, 'response') and hasattr(e.response, 'json'):
+            try:
+                error_data = e.response.json()
+                print(f"API Error: {e.response.status_code} - {error_data}")
+            except:
+                pass
+        sys.exit(1)
     print("Transaction:", tx.id, tx.isPayed)
     print("Barcode:", getattr(tx.shipment, 'barcode', None))
     print("Tracking number:", getattr(tx.shipment, 'trackingNumber', None))
@@ -58,14 +73,28 @@ def main():
     #if ts:
     #    print('Status:', ts.get('trackingStatusCode'), ts.get('trackingSubStatusCode'))
 
-    # Download labels using URLs from transaction.shipment (no extra GET)
-    if getattr(tx, 'shipment', None) and getattr(tx.shipment, 'labelURL', None):
-        with open('label.pdf', 'wb') as f:
-            f.write(client.download_label_by_url(getattr(tx.shipment, 'labelURL')))
-    rl2 = getattr(tx.shipment, 'responsiveLabelURL', None) if getattr(tx, 'shipment', None) else None
-    if rl2:
-        with open('label.html', 'w', encoding='utf-8') as f:
-            f.write(client.download_responsive_label_by_url(rl2))
+    # Etiket indirme: LabelFileType kontrolü
+    # Eğer LabelFileType "PROVIDER_PDF" ise, LabelURL'den indirilen PDF etiket kullanılmalıdır.
+    # Eğer LabelFileType "PDF" ise, responsiveLabelURL (HTML) dosyası kullanılabilir.
+    if getattr(tx, 'shipment', None):
+        label_file_type = getattr(tx.shipment, 'labelFileType', None)
+        if label_file_type == 'PROVIDER_PDF':
+            # PROVIDER_PDF: Sadece PDF etiket kullanılmalı
+            if getattr(tx.shipment, 'labelURL', None):
+                with open('label.pdf', 'wb') as f:
+                    f.write(client.download_label_by_url(getattr(tx.shipment, 'labelURL')))
+                print("PDF etiket indirildi (PROVIDER_PDF)")
+        elif label_file_type == 'PDF':
+            # PDF: ResponsiveLabel (HTML) kullanılabilir
+            rl2 = getattr(tx.shipment, 'responsiveLabelURL', None)
+            if rl2:
+                with open('label.html', 'w', encoding='utf-8') as f:
+                    f.write(client.download_responsive_label_by_url(rl2))
+                print("HTML etiket indirildi (PDF)")
+            # İsteğe bağlı olarak PDF de indirilebilir
+            if getattr(tx.shipment, 'labelURL', None):
+                with open('label.pdf', 'wb') as f:
+                    f.write(client.download_label_by_url(getattr(tx.shipment, 'labelURL')))
 
 if __name__ == "__main__":
     main()

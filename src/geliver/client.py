@@ -21,10 +21,11 @@ class ClientOptions:
 
 
 class GeliverError(Exception):
-    def __init__(self, message: str, *, status: Optional[int] = None, code: Optional[str] = None, response_body: Any = None) -> None:
+    def __init__(self, message: str, *, status: Optional[int] = None, code: Optional[str] = None, additional_message: Optional[str] = None, response_body: Any = None) -> None:
         super().__init__(message)
         self.status = status
         self.code = code
+        self.additional_message = additional_message
         self.response_body = response_body
 
 
@@ -67,14 +68,20 @@ class GeliverClient:
                     self._backoff(attempt)
                     continue
                 code = payload.get("code") if isinstance(payload, dict) else None
-                raise GeliverError(f"HTTP {res.status_code}", status=res.status_code, code=code, response_body=payload)
+                message = payload.get("message") if isinstance(payload, dict) else None
+                addl = payload.get("additionalMessage") if isinstance(payload, dict) else None
+                raise GeliverError(message or f"HTTP {res.status_code}", status=res.status_code, code=code, additional_message=addl, response_body=payload)
 
             data: Any
             try:
                 env = Envelope.model_validate(res.json())
+                if env.result is False:
+                    raise GeliverError(env.message or 'API error', code=env.code, additional_message=env.additionalMessage, response_body=env.model_dump())
                 if env.data is not None:
                     return env.data
                 return res.json()
+            except GeliverError:
+                raise
             except Exception:
                 return res.text
 

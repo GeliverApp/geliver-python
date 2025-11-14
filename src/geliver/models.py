@@ -56,9 +56,7 @@ class District(BaseModel):
     name: Optional[str] = Field(default=None, description="Model")
     regionCode: Optional[str] = None
 
-class Duration(BaseModel):
-    """Duration model"""
-    pass
+# Duration was a model placeholder; API returns integer timestamp for duration values.
 
 class Item(BaseModel):
     """Item model"""
@@ -97,7 +95,7 @@ class Offer(BaseModel):
     amountOld: Optional[str] = None
     amountTax: Optional[str] = None
     amountVat: Optional[str] = None
-    averageEstimatedTime: Optional[Duration] = None
+    averageEstimatedTime: Optional[int] = None
     averageEstimatedTimeHumanReadible: Optional[str] = None
     bonusBalance: Optional[str] = None
     createdAt: Optional[str] = None
@@ -113,8 +111,8 @@ class Offer(BaseModel):
     isGlobal: Optional[bool] = None
     isMainOffer: Optional[bool] = None
     isProviderAccountOffer: Optional[bool] = None
-    maxEstimatedTime: Optional[Duration] = None
-    minEstimatedTime: Optional[Duration] = None
+    maxEstimatedTime: Optional[int] = None
+    minEstimatedTime: Optional[int] = None
     owner: Optional[str] = None
     predictedDeliveryTime: Optional[Decimal] = None
     providerAccountID: Optional[str] = None

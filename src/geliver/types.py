@@ -45,6 +45,7 @@ except Exception:
 
 class Envelope(BaseModel):
     result: Optional[bool] = None
+    code: Optional[str] = None
     message: Optional[str] = None
     additionalMessage: Optional[str] = None
     limit: Optional[int] = None
