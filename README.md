@@ -266,6 +266,25 @@ if getattr(shipment, 'labelFileType', None) == ShipmentLabelFileType.PDF.value:
 - Kapıda ödeme: `sdks/python/examples/pod.py`
 - Kendi anlaşmanızla etiket satın alma: `sdks/python/examples/ownagreement.py`
 
+---
+
+## Hatalar ve İstisnalar
+
+- İstemci şu durumlarda `GeliverError` fırlatır: (1) HTTP 4xx/5xx; (2) JSON envelope `result is False`.
+- Hata alanları: `code: str|None`, `additional_message: str|None`, `status: int|None`, `response_body: Any`, `message`.
+
+```python
+from geliver.client import GeliverError
+
+try:
+    client.create_shipment({...})
+except GeliverError as e:
+    print('code:', e.code)
+    print('message:', str(e))
+    print('additional:', e.additional_message)
+    print('status:', e.status)
+```
+
 - Şehir/İlçe seçimi: cityCode ve cityName beraber veya ayrı gönderilebilir; eşleşme açısından cityCode daha güvenilirdir. Şehir/ilçe verilerini API'den alabilirsiniz:
 
 ```python
