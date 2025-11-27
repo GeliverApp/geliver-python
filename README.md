@@ -115,16 +115,14 @@ if pre_html_url:
     with open('label_pre.html', 'w', encoding='utf-8') as f:
         f.write(client.download_responsive_label_by_url(shipment.responsiveLabelURL))
 
-# Teklifler create yanıtında hazır olabilir; önce onu kontrol edin
+# Teklifler create yanıtında yoksa tek bir GET ile güncel shipment alın
 offers = getattr(shipment, "offers", None)
-if not (offers and (float(offers.get("percentageCompleted", 0)) == 100 or offers.get("cheapest"))):
-    # Hazır değilse, %100 olana kadar 1 sn aralıkla sorgulayın
-    while True:
-        s = client.get_shipment(shipment.id)
-        offers = getattr(s, "offers", None)
-        if offers and (float(offers.get("percentageCompleted", 0)) == 100 or offers.get("cheapest")):
-            break
-        import time; time.sleep(1)
+if not offers or not offers.get("cheapest"):
+    refreshed = client.get_shipment(shipment.id)
+    offers = getattr(refreshed, "offers", None)
+
+if not offers or not offers.get("cheapest"):
+    raise RuntimeError("Teklifler hazır değil; GET /shipments çağrısı ile tekrar kontrol edin.")
 
 cheapest = offers["cheapest"]
 tx = client.accept_offer(cheapest["id"])  # purchase label

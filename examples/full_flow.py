@@ -27,22 +27,14 @@ def main():
     })
     # Etiket indirme: Teklif kabulünden sonra (Transaction) gelen URL'leri kullanabilirsiniz de; URL'lere her shipment nesnesinin içinden ulaşılır.
 
-    # Teklifler create yanıtında hazır olabilir; önce onu kontrol edin
+    # Teklifler create yanıtında yoksa tek bir GET ile güncel shipment alın
     offers = getattr(shipment, 'offers', None)
-    start = time.time()
-    if not (offers and (float(offers.get('percentageCompleted', 0)) == 100 or offers.get('cheapest'))):
-        # Hazır değilse, %100 olana kadar 1 sn aralıkla sorgulayın
-        while True:
-            s = client.get_shipment(shipment.id)
-            offers = getattr(s, 'offers', None)
-            if offers and (float(offers.get('percentageCompleted', 0)) == 100 or offers.get('cheapest')):
-                break
-            if time.time() - start > 60:
-                raise TimeoutError('Timed out waiting for offers')
-            time.sleep(1)
+    if not offers or not offers.get('cheapest'):
+        refreshed = client.get_shipment(shipment.id)
+        offers = getattr(refreshed, 'offers', None)
 
-    if not offers.get("cheapest"):
-        print("Error: No cheapest offer available")
+    if not offers or not offers.get("cheapest"):
+        print("Error: No cheapest offer available (henüz hazır değil)")
         sys.exit(1)
 
     try:
