@@ -115,12 +115,8 @@ if pre_html_url:
     with open('label_pre.html', 'w', encoding='utf-8') as f:
         f.write(client.download_responsive_label_by_url(shipment.responsiveLabelURL))
 
-# Teklifler create yanıtında yoksa tek bir GET ile güncel shipment alın
+# Teklifler create yanıtındaki offers alanında gelir
 offers = getattr(shipment, "offers", None)
-if not offers or not offers.get("cheapest"):
-    refreshed = client.get_shipment(shipment.id)
-    offers = getattr(refreshed, "offers", None)
-
 if not offers or not offers.get("cheapest"):
     raise RuntimeError("Teklifler hazır değil; GET /shipments çağrısı ile tekrar kontrol edin.")
 
