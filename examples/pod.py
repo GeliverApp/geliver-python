@@ -10,7 +10,7 @@ client = GeliverClient(ClientOptions(token=token))
 
 sender = client.create_sender_address({
     'name': 'POD Sender', 'email': 'sender@example.com',
-    'address1': 'Street 1', 'countryCode': 'TR', 'cityName': 'Istanbul', 'cityCode': '34', 'districtName': 'Esenyurt', 'zip': '34020',
+    'address1': 'Hasan Mahallesi', 'countryCode': 'TR', 'cityName': 'Istanbul', 'cityCode': '34', 'districtName': 'Esenyurt', 'zip': '34020',
 })
 
 tx = client.create_transaction({
