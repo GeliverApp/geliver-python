@@ -49,14 +49,14 @@ from geliver import GeliverClient, ClientOptions
 client = GeliverClient(ClientOptions(token="YOUR_TOKEN"))
 
 sender = client.create_sender_address({
-    "name": "ACME Inc.", "email": "ops@acme.test",
+    "name": "ACME Inc.", "email": "ops@acme.test", "phone": "+905051234567",
     "address1": "Hasan Mahallesi", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
     "districtName": "Esenyurt", "zip": "34020",
 })
 
 shipment = client.create_shipment_test({
     "senderAddressID": sender["id"],
-    "recipientAddress": {"name": "John Doe", "email": "john@example.com", "address1": "Atatürk Mahallesi", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadıköy", "zip": "34000"},
+    "recipientAddress": {"name": "John Doe", "email": "john@example.com", "phone": "+905051234568", "address1": "Atatürk Mahallesi", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadıköy", "zip": "34000"},
     # Request dimensions/weight must be strings
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm", "weight": "1.0", "massUnit": "kg",
     "order": {
