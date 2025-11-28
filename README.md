@@ -198,7 +198,7 @@ Not:
 
 ```python
 from fastapi import FastAPI, Request
-from geliver import verify_webhook
+from geliver import verify_webhook, WebhookUpdateTrackingRequest
 
 app = FastAPI()
 
@@ -208,8 +208,10 @@ async def webhook(req: Request):
     ok = verify_webhook(body, req.headers, enable_verification=False)
     if not ok:
         return {"status": "invalid"}
-    evt = await req.json()
-    # process evt
+    evt = WebhookUpdateTrackingRequest.model_validate_json(body.decode("utf-8"))
+    if evt.event == "TRACK_UPDATED":
+        shipment = evt.data
+        print("Tracking update:", shipment.trackingUrl, shipment.trackingNumber)
     return {"status": "ok"}
 ```
 

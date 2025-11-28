@@ -355,3 +355,9 @@ class Tracking(BaseModel):
     trackingStatusCode: Optional[str] = None
     trackingSubStatusCode: Optional[str] = None
     updatedAt: Optional[str] = None
+
+class WebhookUpdateTrackingRequest(BaseModel):
+    """Webhook payload for tracking status updates"""
+    event: str
+    metadata: Optional[str] = None
+    data: Shipment
