@@ -235,6 +235,43 @@ ts = getattr(s, 'trackingStatus', None)
 print('Status:', ts.get('trackingStatusCode') if ts else None, ts.get('trackingSubStatusCode') if ts else None)
 ```
 
+### Gönderi Listeleme, Getir, Güncelle, İptal, Klonla
+
+- Listeleme (docs): https://docs.geliver.io/docs/shipments_and_transaction/list_shipments
+- Gönderi getir (docs): https://docs.geliver.io/docs/shipments_and_transaction/list_shipments
+- Paket güncelle (docs): https://docs.geliver.io/docs/shipments_and_transaction/update_package_shipment
+- Gönderi iptal (docs): https://docs.geliver.io/docs/shipments_and_transaction/cancel_shipment
+- Gönderi klonla (docs): https://docs.geliver.io/docs/shipments_and_transaction/clone_shipment
+
+```python
+# Listeleme (sayfalandırma)
+resp = client.list_shipments({"page": 1, "limit": 20})
+for shipment in resp.data or []:
+    print(shipment.id, getattr(shipment, "statusCode", None))
+
+# Getir
+fetched = client.get_shipment("SHIPMENT_ID")
+ts = getattr(fetched, "trackingStatus", {}) or {}
+print("Tracking:", ts.get("trackingStatusCode"), ts.get("trackingSubStatusCode"))
+
+# Paket güncelle (eni, boyu, yüksekliği ve ağırlığı string gönderin)
+client.update_package(fetched.id, {
+    "length": "12.0",
+    "width": "12.0",
+    "height": "10.0",
+    "distanceUnit": "cm",
+    "weight": "1.2",
+    "massUnit": "kg",
+})
+
+# İptal
+client.cancel_shipment(fetched.id)
+
+# Klonla
+cloned = client.clone_shipment(fetched.id)
+print("Cloned shipment:", getattr(cloned, "id", None))
+```
+
 ---
 
 ## Modeller
