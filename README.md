@@ -56,7 +56,7 @@ sender = client.create_sender_address({
 
 shipment = client.create_shipment_test({
     "senderAddressID": sender["id"],
-    "recipientAddress": {"name": "John Doe", "email": "john@example.com", "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadıköy", "zip": "34000"},
+    "recipientAddress": {"name": "John Doe", "email": "john@example.com", "address1": "Atatürk Mahallesi", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadıköy", "zip": "34000"},
     # Request dimensions/weight must be strings
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm", "weight": "1.0", "massUnit": "kg",
 })
@@ -98,7 +98,7 @@ shipment = client.create_shipment({
     "senderAddressID": sender["id"],
     "recipientAddress": {
         "name": "John Doe", "email": "john@example.com", "phone": "+905051234568",
-        "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
+        "address1": "Atatürk Mahallesi", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
         "districtName": "Esenyurt", "zip": "34020",
     },
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm",
@@ -148,7 +148,7 @@ created_direct = client.create_shipment(CreateShipmentWithRecipientID(
 ```python
 recipient = client.create_recipient_address({
     "name": "John Doe", "email": "john@example.com",
-    "address1": "Dest St 2", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
+    "address1": "Atatürk Mahallesi", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34",
     "districtName": "Kadıköy", "zip": "34000",
 })
 ```
