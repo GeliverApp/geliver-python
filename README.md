@@ -24,7 +24,7 @@ Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu 
 
 ## Kurulum
 
-- `cd sdks/python && pip install -e .`
+- `pip install -e .`
 
 ---
 
@@ -59,6 +59,13 @@ shipment = client.create_shipment_test({
     "recipientAddress": {"name": "John Doe", "email": "john@example.com", "address1": "Atatürk Mahallesi", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Kadıköy", "zip": "34000"},
     # Request dimensions/weight must be strings
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm", "weight": "1.0", "massUnit": "kg",
+    "order": {
+        "orderNumber": "WEB-12345",
+        # sourceIdentifier alanına mağazanızın tam adresini yazın (ör. https://magazam.com).
+        "sourceIdentifier": "https://magazam.com",
+        "totalAmount": "150",
+        "totalAmountCurrency": "TRY",
+    },
 })
 ```
 
@@ -103,6 +110,13 @@ shipment = client.create_shipment({
     },
     "length": "10.0", "width": "10.0", "height": "10.0", "distanceUnit": "cm",
     "weight": "1.0", "massUnit": "kg",
+    "order": {
+        "orderNumber": "WEB-12345",
+        # sourceIdentifier alanına mağazanızın tam adresini yazın (ör. https://magazam.com).
+        "sourceIdentifier": "https://magazam.com",
+        "totalAmount": "150",
+        "totalAmountCurrency": "TRY",
+    },
 })
 
 # Etiketler bazı akışlarda create sonrasında hazır olabilir; varsa hemen indirin
@@ -127,8 +141,6 @@ print('Barcode:', getattr(tx.shipment, 'barcode', None))
 print('Label URL:', getattr(tx.shipment, 'labelURL', None))
 print('Tracking URL:', getattr(tx.shipment, 'trackingUrl', None)) # Bu alan bazı firmalarda gönderici şubesine teslimden veya kurye sizden teslim aldıktan sonra dolar. Bu sebeple webhook kullarak bu alanı alabilirsiniz.
 ```
-
----
 
 ## Alıcı ID'si ile oluşturma (recipientAddressID)
 
@@ -212,7 +224,7 @@ webhooks = client.list_webhooks()
 
 ## Testler
 
-- Birim testleri için `httpx.MockTransport` kullanabilirsiniz; `sdks/python/tests` klasörüne bakın.
+- Birim testleri için `httpx.MockTransport` kullanabilirsiniz; `tests` klasörüne bakın.
 - Üretilmiş modeller `geliver.models` altında yer alır (OpenAPI'den otomatik üretilir).
 
 ### Manuel takip kontrolü (isteğe bağlı)
@@ -256,10 +268,10 @@ if getattr(shipment, 'labelFileType', None) == ShipmentLabelFileType.PDF.value:
 
 ## Örnekler
 
-- Tam akış: `sdks/python/examples/full_flow.py`
-- Tek aşamada gönderi (Create Transaction): `sdks/python/examples/onestep.py`
-- Kapıda ödeme: `sdks/python/examples/pod.py`
-- Kendi anlaşmanızla etiket satın alma: `sdks/python/examples/ownagreement.py`
+- Tam akış: `examples/full_flow.py`
+- Tek aşamada gönderi (Create Transaction): `examples/onestep.py`
+- Kapıda ödeme: `examples/pod.py`
+- Kendi anlaşmanızla etiket satın alma: `examples/ownagreement.py`
 
 ---
 
