@@ -24,7 +24,7 @@ Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu 
 
 ## Kurulum
 
-- `pip install -e .`
+- `pip install geliver`
 
 ---
 
