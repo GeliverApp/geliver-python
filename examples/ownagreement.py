@@ -10,6 +10,7 @@ client = GeliverClient(ClientOptions(token=token))
 
 sender = client.create_sender_address({
     'name': 'OwnAg Sender', 'email': 'sender@example.com',
+    'phone': '+905000000097',
     'address1': 'Hasan Mahallesi', 'countryCode': 'TR', 'cityName': 'Istanbul', 'cityCode': '34', 'districtName': 'Esenyurt', 'zip': '34020',
 })
 

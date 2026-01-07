@@ -48,3 +48,40 @@ def test_accept_offer():
     assert tx.id == "tx1"
     assert tx.isPayed is True
 
+
+def test_create_transaction_wraps_shipment():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.method == "POST" and request.url.path.endswith("/transactions"):
+            body = json.loads(request.content.decode())
+            assert body.get("test") is None  # must be under shipment
+            assert body.get("providerServiceCode") == "SURAT_STANDART"
+            assert body.get("providerAccountID") == "acc-1"
+            assert isinstance(body.get("shipment"), dict)
+            shipment = body["shipment"]
+            assert shipment.get("test") is True
+            assert shipment.get("providerServiceCode") is None
+            assert shipment.get("providerAccountID") is None
+            assert shipment.get("length") == "10.5"
+            assert shipment.get("weight") == "1.25"
+            assert shipment.get("order", {}).get("sourceCode") == "API"
+            payload = {"result": True, "data": {"id": "tx1", "offerID": "offer-123", "isPayed": True}}
+            return httpx.Response(200, json=payload)
+        return httpx.Response(404)
+
+    transport = httpx.MockTransport(handler)
+    client = GeliverClient(ClientOptions(token="test"))
+    client._client._transport = transport  # type: ignore
+
+    tx = client.create_transaction({
+        "senderAddressID": "sender-1",
+        "recipientAddress": {"name": "R", "phone": "+905000000000", "address1": "A", "countryCode": "TR", "cityName": "Istanbul", "cityCode": "34", "districtName": "Esenyurt"},
+        "length": 10.5,
+        "weight": 1.25,
+        "distanceUnit": "cm",
+        "massUnit": "kg",
+        "test": True,
+        "providerServiceCode": "SURAT_STANDART",
+        "providerAccountID": "acc-1",
+        "order": {"orderNumber": "ORDER-1"},
+    })
+    assert tx.id == "tx1"

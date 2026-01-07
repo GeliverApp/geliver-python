@@ -172,7 +172,15 @@ class GeliverClient:
         """One-step label purchase. Post shipment details directly to /transactions.
         Body follows create_shipment fields (recipientAddress or recipientAddressID, dimensions as strings).
         """
-        payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else dict(body)
+        raw = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else dict(body)
+        payload: Dict[str, Any]
+        wrapper_in: Optional[Dict[str, Any]] = None
+        if isinstance(raw.get("shipment"), dict):
+            wrapper_in = raw
+            payload = dict(raw.get("shipment") or {})
+        else:
+            payload = raw
+
         if isinstance(payload.get("order"), dict) and not payload["order"].get("sourceCode"):
             payload["order"]["sourceCode"] = "API"
         if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):
@@ -180,7 +188,25 @@ class GeliverClient:
         for key in ("length","width","height","weight"):
             if key in payload and payload[key] is not None:
                 payload[key] = str(payload[key])
-        return Transaction.model_validate(self._request("POST", "/transactions", json_body=payload))
+
+        wrapper: Dict[str, Any] = {"shipment": payload}
+        provider_account_id = (wrapper_in or {}).get("providerAccountID") if wrapper_in else None
+        if provider_account_id is None:
+            provider_account_id = payload.pop("providerAccountID", None)
+        else:
+            payload.pop("providerAccountID", None)
+        if provider_account_id is not None:
+            wrapper["providerAccountID"] = provider_account_id
+
+        provider_service_code = (wrapper_in or {}).get("providerServiceCode") if wrapper_in else None
+        if provider_service_code is None:
+            provider_service_code = payload.pop("providerServiceCode", None)
+        else:
+            payload.pop("providerServiceCode", None)
+        if provider_service_code is not None:
+            wrapper["providerServiceCode"] = provider_service_code
+
+        return Transaction.model_validate(self._request("POST", "/transactions", json_body=wrapper))
 
     # ---- helpers ----
     # Removed wait_for_offers helper; prefer webhooks or manual lightweight polling in tests.
