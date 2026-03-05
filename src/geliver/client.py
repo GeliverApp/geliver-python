@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional, Iterator
 import httpx
 from .types import Envelope, Shipment, Transaction, ListParams, ShipmentsListResponse, AddressesListResponse, ProviderAccountsListResponse, ParcelTemplatesListResponse, WebhooksListResponse, CitiesListResponse, DistrictsListResponse
 from .requests import CreateShipmentRequest, UpdatePackageRequest, CreateAddressRequest
+from .version import default_user_agent
 
 
 DEFAULT_BASE_URL = "https://api.geliver.io/api/v1"
@@ -39,8 +40,7 @@ class GeliverClient:
             "Authorization": f"Bearer {self._token}",
             "Content-Type": "application/json",
         }
-        if options.user_agent:
-            headers["User-Agent"] = options.user_agent
+        headers["User-Agent"] = options.user_agent or default_user_agent()
         self._client = httpx.Client(base_url=self._base_url, headers=headers, timeout=self._timeout)
 
     # ---- low-level ----
@@ -74,12 +74,17 @@ class GeliverClient:
 
             data: Any
             try:
-                env = Envelope.model_validate(res.json())
+                raw = res.json()
+                env = Envelope.model_validate(raw)
                 if env.result is False:
                     raise GeliverError(env.message or 'API error', code=env.code, additional_message=env.additionalMessage, response_body=env.model_dump())
+                # If this is a paginated/list envelope, callers expect the full envelope
+                # (limit/page/totalRows/totalPages + data list).
+                if env.limit is not None or env.page is not None or env.totalRows is not None or env.totalPages is not None:
+                    return raw
                 if env.data is not None:
                     return env.data
-                return res.json()
+                return raw
             except GeliverError:
                 raise
             except Exception:
@@ -101,7 +106,7 @@ class GeliverClient:
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else body
         if isinstance(payload.get("order"), dict):
             if not payload["order"].get("sourceCode"):
-                payload["order"]["sourceCode"] = "API"
+                payload["order"]["sourceCode"] = "SDK"
         if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):
             raise ValueError('recipientAddress.phone is required')
         for key in ("length","width","height","weight"):
@@ -146,13 +151,15 @@ class GeliverClient:
     def create_return_shipment(self, shipment_id: str, body: Any) -> Shipment:
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else body
         payload["isReturn"] = True
-        return Shipment.model_validate(self._request("PATCH", f"/shipments/{shipment_id}", json_body=payload))
+        if payload.get("count") is None or payload.get("count") == 0:
+            payload["count"] = 1
+        return Shipment.model_validate(self._request("POST", f"/shipments/{shipment_id}", json_body=payload))
 
     def create_shipment_test(self, body: Any) -> Shipment:
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else dict(body)
         if isinstance(payload.get("order"), dict):
             if not payload["order"].get("sourceCode"):
-                payload["order"]["sourceCode"] = "API"
+                payload["order"]["sourceCode"] = "SDK"
         if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):
             raise ValueError('recipientAddress.phone is required')
         for key in ("length","width","height","weight"):
@@ -182,7 +189,7 @@ class GeliverClient:
             payload = raw
 
         if isinstance(payload.get("order"), dict) and not payload["order"].get("sourceCode"):
-            payload["order"]["sourceCode"] = "API"
+            payload["order"]["sourceCode"] = "SDK"
         if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):
             raise ValueError('recipientAddress.phone is required')
         for key in ("length","width","height","weight"):
@@ -276,7 +283,8 @@ class GeliverClient:
 
     # ---- label downloads ----
     def download_label_by_url(self, url: str) -> bytes:
-        res = httpx.get(url)
+        ua = self._client.headers.get("User-Agent")
+        res = httpx.get(url, headers={"User-Agent": ua} if ua else None)
         res.raise_for_status()
         return res.content
 
@@ -288,7 +296,8 @@ class GeliverClient:
         return self.download_label_by_url(url)
 
     def download_responsive_label_by_url(self, url: str) -> str:
-        res = httpx.get(url)
+        ua = self._client.headers.get("User-Agent")
+        res = httpx.get(url, headers={"User-Agent": ua} if ua else None)
         res.raise_for_status()
         return res.text
 

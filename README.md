@@ -185,14 +185,15 @@ print('Final status:', ts.get('trackingStatusCode') if ts else None, ts.get('tra
 returned = client.create_return_shipment(shipment.id, {
     'willAccept': True,
     'providerServiceCode': 'SURAT_STANDART',
-    'count': 1,
 })
 ```
 
 Not:
 
+- `willAccept` alanı opsiyoneldir (varsayılan `False`). `True` ise backend iade için uygun teklifi otomatik kabul eder (etiket satın alma). `False` ise sadece iade shipment’i oluşturur; daha sonra `client.accept_offer(offer_id)` ile kabul edebilirsiniz.
 - `providerServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
 - `senderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
+- `count` alanı opsiyoneldir (varsayılan `1`). Bu fonksiyon “tek shipment için tek iade” akışı içindir; genelde `1` kullanılmalıdır.
 
 ## Webhooklar
 

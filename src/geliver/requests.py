@@ -55,7 +55,7 @@ class UpdatePackageRequest(BaseModel):
 
 class ReturnShipmentRequest(BaseModel):
     isReturn: Optional[bool] = True
-    willAccept: bool
-    providerServiceCode: str
-    count: int
-    senderAddress: dict
+    willAccept: bool = False
+    providerServiceCode: Optional[str] = None
+    count: int = 1
+    senderAddress: Optional[dict] = None
