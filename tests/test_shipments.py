@@ -106,6 +106,30 @@ class ShipmentsTests(unittest.TestCase):
         returned = client.create_return_shipment("shp-1", {"providerServiceCode": "SURAT_STANDART"})
         self.assertEqual(returned.id, "ret-1")
 
+    def test_create_return_shipment_with_will_accept_raises(self) -> None:
+        client = GeliverClient(ClientOptions(token="test"))
+        with self.assertRaises(ValueError):
+            client.create_return_shipment("shp-1", {"willAccept": True})
+
+    def test_create_return_transaction_forces_will_accept(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.method == "POST" and request.url.path.endswith("/shipments/shp-1"):
+                body = json.loads(request.content.decode())
+                self.assertIs(body.get("isReturn"), True)
+                self.assertIs(body.get("willAccept"), True)
+                self.assertEqual(body.get("count"), 1)
+                payload = {"result": True, "data": {"id": "tx-1", "offerID": "offer-1", "transactionType": "CREATE_SHIPMENT"}}
+                return httpx.Response(200, json=payload)
+            return httpx.Response(404)
+
+        transport = httpx.MockTransport(handler)
+        client = GeliverClient(ClientOptions(token="test"))
+        client._client._transport = transport  # type: ignore
+
+        returned = client.create_return_transaction("shp-1", {"providerServiceCode": "SURAT_STANDART"})
+        self.assertEqual(returned.id, "tx-1")
+        self.assertEqual(returned.offerID, "offer-1")
+
 
 if __name__ == "__main__":
     unittest.main()

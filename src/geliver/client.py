@@ -150,6 +150,9 @@ class GeliverClient:
 
     def create_return_shipment(self, shipment_id: str, body: Any) -> Shipment:
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else body
+        if payload.get("willAccept") is True:
+            raise ValueError("create_return_shipment does not support willAccept=True; use create_return_transaction instead")
+        payload.pop("willAccept", None)
         payload["isReturn"] = True
         if payload.get("count") is None or payload.get("count") == 0:
             payload["count"] = 1
@@ -174,6 +177,14 @@ class GeliverClient:
         including barcode, labelURL, and tracking metadata.
         """
         return Transaction.model_validate(self._request("POST", "/transactions", json_body={"offerID": offer_id}))
+
+    def create_return_transaction(self, shipment_id: str, body: Any) -> Transaction:
+        payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else dict(body)
+        payload["isReturn"] = True
+        payload["willAccept"] = True
+        if payload.get("count") is None or payload.get("count") == 0:
+            payload["count"] = 1
+        return Transaction.model_validate(self._request("POST", f"/shipments/{shipment_id}", json_body=payload))
 
     def create_transaction(self, body: Any) -> Transaction:
         """One-step label purchase. Post shipment details directly to /transactions.

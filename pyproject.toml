@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geliver"
-version = "0.3.2"
+version = "0.4.0"
 description = "Geliver API SDK (Python)"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"

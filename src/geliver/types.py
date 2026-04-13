@@ -72,6 +72,7 @@ class Shipment(BaseModel):
 class Transaction(BaseModel):
     id: str
     offerID: str
+    shipmentID: Optional[str] = None
     isPayed: Optional[bool] = None
     transactionType: Optional[str] = None
     shipment: Optional[Shipment] = None

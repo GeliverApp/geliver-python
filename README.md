@@ -6,6 +6,7 @@ Geliver Python SDK — official Python client for Geliver Kargo Pazaryeri (Shipp
 Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu sağlar.
 
 • Dokümantasyon (TR/EN): https://docs.geliver.io
+• Değişiklik geçmişi: `CHANGELOG.md`
 
 ---
 
@@ -37,7 +38,7 @@ Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu 
 5. Barkod, takip numarası, etiket URL’leri Transaction içindeki Shipment’ten okunur
 6. Test gönderilerinde her GET /shipments isteğinde kargo durumu bir adım ilerler; prod'da webhookları kullanın
 7. Etiketleri indirin (PDF ve HTML dinamik etiket)
-8. İade gönderisi gerekiyorsa create_return_shipment fonksiyonunu kullanın
+8. İadeyi oluşturup etiketi henüz satın almamak için `create_return_shipment`; iadeyi oluşturup etiketi hemen satın almak için `create_return_transaction` kullanın
 
 ---
 
@@ -183,17 +184,30 @@ print('Final status:', ts.get('trackingStatusCode') if ts else None, ts.get('tra
 
 ```python
 returned = client.create_return_shipment(shipment.id, {
-    'willAccept': True,
     'providerServiceCode': 'SURAT_STANDART',
 })
+print(returned.id)
 ```
 
 Not:
 
-- `willAccept` alanı opsiyoneldir (varsayılan `False`). `True` ise backend iade için uygun teklifi otomatik kabul eder (etiket satın alma). `False` ise sadece iade shipment’i oluşturur; daha sonra `client.accept_offer(offer_id)` ile kabul edebilirsiniz.
+- `create_return_shipment(...)` iadeyi oluşturur, etiketi satın almaz ve `Shipment` döner.
+- Etiketi daha sonra satın almak isterseniz, teklif hazır olduğunda normal satın alma akışını `accept_offer(...)` ile kullanabilirsiniz.
 - `providerServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
 - `senderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
 - `count` alanı opsiyoneldir (varsayılan `1`). Bu fonksiyon “tek shipment için tek iade” akışı içindir; genelde `1` kullanılmalıdır.
+
+İadeyi oluşturup etiketi hemen satın almak için:
+
+```python
+tx = client.create_return_transaction(shipment.id, {
+    'providerServiceCode': 'SURAT_STANDART',
+})
+print(tx.id)  # transaction id
+print(getattr(tx.shipment, 'id', None))  # return shipment id, API döndürüyorsa
+```
+
+- `create_return_transaction(...)` iadeyi oluşturur, etiketi hemen satın alır ve `Transaction` döner.
 
 ## Webhooklar
 
@@ -309,9 +323,13 @@ if getattr(shipment, 'labelFileType', None) == ShipmentLabelFileType.PDF.value:
 ## Örnekler
 
 - Tam akış: `examples/full_flow.py`
+- İade oluştur, etiketi sonra satın al: `examples/return_shipment.py`
+- İade oluştur, etiketi hemen satın al: `examples/return_transaction.py`
 - Tek aşamada gönderi (Create Transaction): `examples/onestep.py`
 - Kapıda ödeme: `examples/pod.py`
 - Kendi anlaşmanızla etiket satın alma: `examples/ownagreement.py`
+
+İade örnekleri mevcut ve iade edilebilir bir shipment ID bekler. ID'yi `GELIVER_RETURN_SHIPMENT_ID` ile veya ilk komut satırı argümanı olarak verebilirsiniz.
 
 ---
 

@@ -55,6 +55,7 @@ class UpdatePackageRequest(BaseModel):
 
 class ReturnShipmentRequest(BaseModel):
     isReturn: Optional[bool] = True
+    # Deprecated: use create_return_transaction(...) to create the return and purchase the label immediately.
     willAccept: bool = False
     providerServiceCode: Optional[str] = None
     count: int = 1
