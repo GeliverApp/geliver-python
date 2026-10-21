@@ -2,10 +2,35 @@ from __future__ import annotations
 import json
 import unittest
 import httpx
-from geliver import GeliverClient, ClientOptions, CreateShipmentWithRecipientID, Address
+from geliver import GeliverClient, ClientOptions, CreateShipmentWithRecipientID, CreateShipmentWithRecipientAddress, Address
 
 
 class ShipmentsTests(unittest.TestCase):
+    def test_create_incoming_shipment_address_combinations(self) -> None:
+        sent = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            sent.append(json.loads(request.content.decode()))
+            return httpx.Response(200, json={"result": True, "data": {"id": "incoming-1"}})
+
+        client = GeliverClient(ClientOptions(token="test"))
+        client._client._transport = httpx.MockTransport(handler)  # type: ignore
+        customer = Address(name="Customer", phone="+905051234567", address1="A")
+        merchant = Address(name="Merchant", phone="+905051234568", address1="B")
+        cases = [
+            (CreateShipmentWithRecipientID(sourceCode="SDK", isReturn=True, senderAddressID="customer-1", recipientAddressID="merchant-1"), "senderAddressID", "recipientAddressID"),
+            (CreateShipmentWithRecipientAddress(sourceCode="SDK", isReturn=True, senderAddressID="customer-1", recipientAddress=merchant), "senderAddressID", "recipientAddress"),
+            (CreateShipmentWithRecipientID(sourceCode="SDK", isReturn=True, senderAddress=customer, recipientAddressID="merchant-1"), "senderAddress", "recipientAddressID"),
+            (CreateShipmentWithRecipientAddress(sourceCode="SDK", isReturn=True, senderAddress=customer, recipientAddress=merchant), "senderAddress", "recipientAddress"),
+        ]
+
+        for request, sender_key, recipient_key in cases:
+            client.create_shipment(request)
+            body = sent[-1]
+            self.assertIs(body["isReturn"], True)
+            for key in ("senderAddressID", "senderAddress", "recipientAddressID", "recipientAddress"):
+                self.assertEqual(key in body, key == sender_key or key == recipient_key)
+
     def test_create_incoming_shipment_keeps_address_direction(self) -> None:
         def handler(request: httpx.Request) -> httpx.Response:
             self.assertEqual(request.method, "POST")

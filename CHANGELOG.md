@@ -13,7 +13,7 @@ This file documents notable changes in the SDK.
 
 ### 0.5.0
 
-- `create_shipment(...)` ile `isReturn=True`, satır içi `senderAddress` ve kayıtlı `recipientAddressID` kullanılarak bağımsız iade gönderisi oluşturulabilir.
+- `create_shipment(...)` ile `isReturn=True` ve gönderici/alıcı için bağımsız ID veya satır içi adres seçimi kullanılarak iade gönderisi oluşturulabilir.
 - `examples/incoming_shipment.py` eklendi.
 
 ### 0.4.0
@@ -35,7 +35,7 @@ This file documents notable changes in the SDK.
 
 ### 0.5.0
 
-- `create_shipment(...)` supports independent returns with `isReturn=True`, an inline `senderAddress`, and a saved `recipientAddressID`.
+- `create_shipment(...)` supports independent returns with `isReturn=True` and either an address ID or an inline address for each side.
 - Added `examples/incoming_shipment.py`.
 
 ### 0.4.0

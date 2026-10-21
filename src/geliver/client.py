@@ -100,7 +100,7 @@ class GeliverClient:
 
     # ---- resources: shipments ----
     def create_shipment(self, body: Any) -> Shipment:
-        """Create a shipment using either recipientAddressID or an inline recipientAddress.
+        """Create a shipment using an address ID or inline address for each side.
         Returns a typed Shipment model.
         """
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else body
