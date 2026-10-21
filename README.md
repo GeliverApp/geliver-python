@@ -180,7 +180,26 @@ print('Final status:', ts.get('trackingStatusCode') if ts else None, ts.get('tra
 
 ---
 
-## İade Gönderisi Oluşturun
+## Referans gönderi olmadan kargo bana gelecek
+
+Müşteriden size gelecek yeni gönderi için `create_shipment` isteğinde `isReturn=True` kullanın. `senderAddress` müşterinin çıkış adresidir; `recipientAddressID` sizin kayıtlı alıcı adresinizdir. `isReturn` adresleri otomatik değiştirmez. `test=True` yalnızca test içindir.
+
+```python
+shipment = client.create_shipment({
+    'isReturn': True,
+    'test': True,
+    'senderAddress': {
+        'name': 'Müşteri Adı', 'phone': '+905051234567',
+        'address1': 'Örnek Mahallesi 1', 'countryCode': 'TR', 'cityCode': '34', 'districtName': 'Kadıköy',
+    },
+    'recipientAddressID': merchant_address_id,
+    'length': '10', 'width': '10', 'height': '10', 'distanceUnit': 'cm', 'weight': '1', 'massUnit': 'kg',
+})
+```
+
+Tipli istek kullanan çalıştırılabilir örnek: `GELIVER_TOKEN=... GELIVER_MERCHANT_ADDRESS_ID=... python examples/incoming_shipment.py`. Etiketi satın almak için teklif kabul akışını kullanın.
+
+## Var olan gönderiye bağlı iade oluşturun
 
 ```python
 returned = client.create_return_shipment(shipment.id, {

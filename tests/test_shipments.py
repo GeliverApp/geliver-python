@@ -2,10 +2,30 @@ from __future__ import annotations
 import json
 import unittest
 import httpx
-from geliver import GeliverClient, ClientOptions
+from geliver import GeliverClient, ClientOptions, CreateShipmentWithRecipientID, Address
 
 
 class ShipmentsTests(unittest.TestCase):
+    def test_create_incoming_shipment_keeps_address_direction(self) -> None:
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "POST")
+            self.assertTrue(request.url.path.endswith("/shipments"))
+            body = json.loads(request.content.decode())
+            self.assertIs(body["isReturn"], True)
+            self.assertEqual(body["senderAddress"]["name"], "Customer")
+            self.assertEqual(body["recipientAddressID"], "merchant-1")
+            self.assertNotIn("senderAddressID", body)
+            return httpx.Response(200, json={"result": True, "data": {"id": "incoming-1"}})
+
+        client = GeliverClient(ClientOptions(token="test"))
+        client._client._transport = httpx.MockTransport(handler)  # type: ignore
+        shipment = client.create_shipment(CreateShipmentWithRecipientID(
+            sourceCode="SDK", isReturn=True,
+            senderAddress=Address(name="Customer", phone="+905051234567", address1="A"),
+            recipientAddressID="merchant-1",
+        ))
+        self.assertEqual(shipment.id, "incoming-1")
+
     def test_list_shipments_uses_envelope_and_pagination(self) -> None:
         # Mock transport returning one page with two items
         def handler(request: httpx.Request) -> httpx.Response:
