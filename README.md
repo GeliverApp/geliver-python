@@ -205,9 +205,7 @@ Tipli istek kullanan çalıştırılabilir örnek: `GELIVER_TOKEN=... python exa
 ## Var olan gönderiye bağlı iade oluşturun
 
 ```python
-returned = client.create_return_shipment(shipment.id, {
-    'providerServiceCode': 'SURAT_STANDART',
-})
+returned = client.create_return_shipment(shipment.id, {})
 print(returned.id)
 ```
 
@@ -215,8 +213,8 @@ Not:
 
 - `create_return_shipment(...)` iadeyi oluşturur, etiketi satın almaz ve `Shipment` döner.
 - Etiketi daha sonra satın almak isterseniz, teklif hazır olduğunda normal satın alma akışını `accept_offer(...)` ile kullanabilirsiniz.
-- `providerServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
-- `senderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
+- `providerServiceCode` yalnızca etiketi hemen satın alan iade akışında kullanılır; verilmezse orijinal gönderinin taşıyıcısı seçilir. Etiketi satın almadan iade oluştururken bu alan dikkate alınmaz.
+- İade müşteriden orijinal göndericiye gider. `senderAddress` ile müşterinin kargonun alınacağı adresini değiştirebilirsiniz; verilmezse orijinal alıcı adresi kullanılır. Adresleri SDK tarafında ters çevirmeyin. Bu referanslı iade endpoint’i yalnızca inline `senderAddress` kabul eder; yeni gönderi oluşturmadaki `recipientAddress`, `recipientAddressID` ve `senderAddressID` seçenekleri burada geçerli değildir.
 - `count` alanı opsiyoneldir (varsayılan `1`). Bu fonksiyon “tek shipment için tek iade” akışı içindir; genelde `1` kullanılmalıdır.
 
 İadeyi oluşturup etiketi hemen satın almak için:

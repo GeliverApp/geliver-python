@@ -173,6 +173,29 @@ class ShipmentsTests(unittest.TestCase):
         returned = client.create_return_shipment("shp-1", {"providerServiceCode": "SURAT_STANDART"})
         self.assertEqual(returned.id, "ret-1")
 
+    def test_return_flows_forward_customer_sender_address_without_swapping(self) -> None:
+        customer = {"name": "Customer", "phone": "+905051234567", "address1": "Pickup address"}
+        calls = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            self.assertEqual(request.method, "POST")
+            self.assertTrue(request.url.path.endswith("/shipments/original-1"))
+            body = json.loads(request.content)
+            calls.append(body)
+            self.assertEqual(body["senderAddress"], customer)
+            self.assertNotIn("recipientAddress", body)
+            self.assertNotIn("recipientAddressID", body)
+            self.assertIs(body["isReturn"], True)
+            return httpx.Response(200, json={"result": True, "data": {"id": "return-1", "offerID": "offer-1"}})
+
+        client = GeliverClient(ClientOptions(token="test"))
+        client._client._transport = httpx.MockTransport(handler)
+        client.create_return_shipment("original-1", {"senderAddress": customer})
+        client.create_return_transaction("original-1", {"senderAddress": customer})
+        self.assertEqual(len(calls), 2)
+        self.assertNotIn("willAccept", calls[0])
+        self.assertIs(calls[1]["willAccept"], True)
+
     def test_create_return_shipment_with_will_accept_raises(self) -> None:
         client = GeliverClient(ClientOptions(token="test"))
         with self.assertRaises(ValueError):
