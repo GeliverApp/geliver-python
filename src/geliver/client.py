@@ -12,6 +12,15 @@ from .version import default_user_agent
 DEFAULT_BASE_URL = "https://api.geliver.io/api/v1"
 
 
+def _validate_shipment_addresses(payload: Dict[str, Any]) -> None:
+    for side in ("sender", "recipient"):
+        address_id = payload.get(f"{side}AddressID")
+        has_id = isinstance(address_id, str) and bool(address_id.strip())
+        has_address = payload.get(f"{side}Address") is not None
+        if has_id == has_address:
+            raise ValueError(f"Provide exactly one of {side}AddressID or {side}Address")
+
+
 @dataclass
 class ClientOptions:
     token: str
@@ -104,6 +113,7 @@ class GeliverClient:
         Returns a typed Shipment model.
         """
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else body
+        _validate_shipment_addresses(payload)
         if isinstance(payload.get("order"), dict):
             if not payload["order"].get("sourceCode"):
                 payload["order"]["sourceCode"] = "SDK"
@@ -160,16 +170,8 @@ class GeliverClient:
 
     def create_shipment_test(self, body: Any) -> Shipment:
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else dict(body)
-        if isinstance(payload.get("order"), dict):
-            if not payload["order"].get("sourceCode"):
-                payload["order"]["sourceCode"] = "SDK"
-        if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):
-            raise ValueError('recipientAddress.phone is required')
-        for key in ("length","width","height","weight"):
-            if key in payload and payload[key] is not None:
-                payload[key] = str(payload[key])
         payload["test"] = True
-        return Shipment.model_validate(self._request("POST", "/shipments", json_body=payload))
+        return self.create_shipment(payload)
 
     # ---- resources: transactions ----
     def accept_offer(self, offer_id: str) -> Transaction:
@@ -199,6 +201,7 @@ class GeliverClient:
         else:
             payload = raw
 
+        _validate_shipment_addresses(payload)
         if isinstance(payload.get("order"), dict) and not payload["order"].get("sourceCode"):
             payload["order"]["sourceCode"] = "SDK"
         if isinstance(payload.get('recipientAddress'), dict) and not payload['recipientAddress'].get('phone'):

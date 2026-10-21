@@ -6,6 +6,24 @@ from geliver import GeliverClient, ClientOptions, CreateShipmentWithRecipientID,
 
 
 class ShipmentsTests(unittest.TestCase):
+    def test_all_new_shipment_flows_require_one_address_per_side(self) -> None:
+        client = GeliverClient(ClientOptions(token="test"))
+        base = {"sourceCode": "SDK", "senderAddressID": "customer-1", "recipientAddressID": "merchant-1"}
+        invalid = [
+            {**base, "senderAddressID": None},
+            {**base, "senderAddress": {"address1": "A"}},
+            {**base, "recipientAddressID": None},
+            {**base, "recipientAddress": {"address1": "B", "phone": "+905051234568"}},
+        ]
+
+        for body in invalid:
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                client.create_shipment(body)
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                client.create_shipment_test(body)
+            with self.assertRaisesRegex(ValueError, "exactly one"):
+                client.create_transaction({"shipment": body})
+
     def test_create_incoming_shipment_address_combinations(self) -> None:
         sent = []
 

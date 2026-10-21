@@ -182,7 +182,7 @@ print('Final status:', ts.get('trackingStatusCode') if ts else None, ts.get('tra
 
 ## Referans gönderi olmadan kargo bana gelecek
 
-Müşteriden size gelecek yeni gönderi için `create_shipment` isteğinde `isReturn=True` kullanın. Gönderici için `senderAddressID` veya satır içi `senderAddress`; alıcı için `recipientAddressID` veya satır içi `recipientAddress` kullanabilirsiniz. Dört kombinasyon da desteklenir; her taraf için yalnızca bir adres seçin. `isReturn` adresleri otomatik değiştirmez. Aşağıdaki örnekte müşteri adresi satır içi, sizin adresiniz kayıtlıdır. `test=True` yalnızca test içindir.
+Müşteriden size gelecek yeni gönderi için `create_shipment` isteğinde `isReturn=True` kullanın. Gönderici için `senderAddressID` veya satır içi `senderAddress`; alıcı için `recipientAddressID` veya satır içi `recipientAddress` kullanabilirsiniz. Dört kombinasyon da desteklenir; her taraf için yalnızca bir adres seçin. Bu kural normal ve iade dahil tüm yeni gönderilerde ve tek adım etiket satın alma akışında geçerlidir. `isReturn` adresleri otomatik değiştirmez. Aşağıdaki örnekte müşteri adresi satır içi, sizin adresiniz kayıtlıdır. `test=True` yalnızca test içindir.
 
 ```python
 shipment = client.create_shipment({
