@@ -17,7 +17,7 @@ def _validate_shipment_addresses(payload: Dict[str, Any]) -> None:
         address_id = payload.get(f"{side}AddressID")
         has_id = isinstance(address_id, str) and bool(address_id.strip())
         has_address = payload.get(f"{side}Address") is not None
-        if has_id == has_address:
+        if (side == "recipient" and has_id == has_address) or (side == "sender" and has_id and has_address):
             raise ValueError(f"Provide exactly one of {side}AddressID or {side}Address")
 
 
@@ -109,7 +109,7 @@ class GeliverClient:
 
     # ---- resources: shipments ----
     def create_shipment(self, body: Any) -> Shipment:
-        """Create a shipment using an address ID or inline address for each side.
+        """Create a shipment with a recipient address; sender defaults to the organization's address.
         Returns a typed Shipment model.
         """
         payload = body.model_dump(exclude_none=True) if hasattr(body, 'model_dump') else body

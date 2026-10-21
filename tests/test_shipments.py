@@ -6,11 +6,10 @@ from geliver import GeliverClient, ClientOptions, CreateShipmentWithRecipientID,
 
 
 class ShipmentsTests(unittest.TestCase):
-    def test_all_new_shipment_flows_require_one_address_per_side(self) -> None:
+    def test_new_shipment_flows_allow_default_sender_and_require_recipient(self) -> None:
         client = GeliverClient(ClientOptions(token="test"))
-        base = {"sourceCode": "SDK", "senderAddressID": "customer-1", "recipientAddressID": "merchant-1"}
+        base = {"sourceCode": "SDK", "senderAddressID": "merchant-1", "recipientAddressID": "customer-1"}
         invalid = [
-            {**base, "senderAddressID": None},
             {**base, "senderAddress": {"address1": "A"}},
             {**base, "recipientAddressID": None},
             {**base, "recipientAddress": {"address1": "B", "phone": "+905051234568"}},
@@ -24,6 +23,11 @@ class ShipmentsTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "exactly one"):
                 client.create_transaction({"shipment": body})
 
+        client._client._transport = httpx.MockTransport(lambda _: httpx.Response(200, json={"result": True, "data": {"id": "s1", "offerID": "offer-1"}}))  # type: ignore
+        client.create_shipment({"recipientAddressID": "customer-1"})
+        client.create_shipment_test({"recipientAddressID": "customer-1"})
+        client.create_transaction({"shipment": {"recipientAddressID": "customer-1"}})
+
     def test_create_incoming_shipment_address_combinations(self) -> None:
         sent = []
 
@@ -33,13 +37,14 @@ class ShipmentsTests(unittest.TestCase):
 
         client = GeliverClient(ClientOptions(token="test"))
         client._client._transport = httpx.MockTransport(handler)  # type: ignore
-        customer = Address(name="Customer", phone="+905051234567", address1="A")
-        merchant = Address(name="Merchant", phone="+905051234568", address1="B")
+        merchant = Address(name="Merchant", phone="+905051234567", address1="A")
+        customer = Address(name="Customer", phone="+905051234568", address1="B")
         cases = [
-            (CreateShipmentWithRecipientID(sourceCode="SDK", isReturn=True, senderAddressID="customer-1", recipientAddressID="merchant-1"), "senderAddressID", "recipientAddressID"),
-            (CreateShipmentWithRecipientAddress(sourceCode="SDK", isReturn=True, senderAddressID="customer-1", recipientAddress=merchant), "senderAddressID", "recipientAddress"),
-            (CreateShipmentWithRecipientID(sourceCode="SDK", isReturn=True, senderAddress=customer, recipientAddressID="merchant-1"), "senderAddress", "recipientAddressID"),
-            (CreateShipmentWithRecipientAddress(sourceCode="SDK", isReturn=True, senderAddress=customer, recipientAddress=merchant), "senderAddress", "recipientAddress"),
+            (CreateShipmentWithRecipientID(sourceCode="SDK", isReturn=True, recipientAddressID="customer-1"), None, "recipientAddressID"),
+            (CreateShipmentWithRecipientID(sourceCode="SDK", isReturn=True, senderAddressID="merchant-1", recipientAddressID="customer-1"), "senderAddressID", "recipientAddressID"),
+            (CreateShipmentWithRecipientAddress(sourceCode="SDK", isReturn=True, senderAddressID="merchant-1", recipientAddress=customer), "senderAddressID", "recipientAddress"),
+            (CreateShipmentWithRecipientID(sourceCode="SDK", isReturn=True, senderAddress=merchant, recipientAddressID="customer-1"), "senderAddress", "recipientAddressID"),
+            (CreateShipmentWithRecipientAddress(sourceCode="SDK", isReturn=True, senderAddress=merchant, recipientAddress=customer), "senderAddress", "recipientAddress"),
         ]
 
         for request, sender_key, recipient_key in cases:
@@ -55,17 +60,16 @@ class ShipmentsTests(unittest.TestCase):
             self.assertTrue(request.url.path.endswith("/shipments"))
             body = json.loads(request.content.decode())
             self.assertIs(body["isReturn"], True)
-            self.assertEqual(body["senderAddress"]["name"], "Customer")
-            self.assertEqual(body["recipientAddressID"], "merchant-1")
+            self.assertEqual(body["recipientAddress"]["name"], "Customer")
+            self.assertNotIn("senderAddress", body)
             self.assertNotIn("senderAddressID", body)
             return httpx.Response(200, json={"result": True, "data": {"id": "incoming-1"}})
 
         client = GeliverClient(ClientOptions(token="test"))
         client._client._transport = httpx.MockTransport(handler)  # type: ignore
-        shipment = client.create_shipment(CreateShipmentWithRecipientID(
+        shipment = client.create_shipment(CreateShipmentWithRecipientAddress(
             sourceCode="SDK", isReturn=True,
-            senderAddress=Address(name="Customer", phone="+905051234567", address1="A"),
-            recipientAddressID="merchant-1",
+            recipientAddress=Address(name="Customer", phone="+905051234567", address1="A"),
         ))
         self.assertEqual(shipment.id, "incoming-1")
 
