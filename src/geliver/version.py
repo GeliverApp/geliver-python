@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 # Keep in sync with python/pyproject.toml when running from source.
-_FALLBACK_VERSION = "0.4.0"
+_FALLBACK_VERSION = "0.5.0"
 
 
 def sdk_version() -> str:

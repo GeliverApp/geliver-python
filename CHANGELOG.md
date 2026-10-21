@@ -6,10 +6,15 @@ This file documents notable changes in the SDK.
 
 ## Sürüm / Version
 
-- Türkçe: Bu değişiklikler `0.4.0` sürümü için hazırlandı.
-- English: These changes are prepared for version `0.4.0`.
+- Türkçe: Bu değişiklikler `0.5.0` sürümü için hazırlandı.
+- English: These changes are prepared for version `0.5.0`.
 
 ## Türkçe
+
+### 0.5.0
+
+- `create_shipment(...)` ile `isReturn=True`, satır içi `senderAddress` ve kayıtlı `recipientAddressID` kullanılarak bağımsız iade gönderisi oluşturulabilir.
+- `examples/incoming_shipment.py` eklendi.
 
 ### 0.4.0
 
@@ -27,6 +32,11 @@ This file documents notable changes in the SDK.
 - README örnekleri, etiketin daha sonra `accept_offer(...)` ile satın alınabileceğini açıklar.
 
 ## English
+
+### 0.5.0
+
+- `create_shipment(...)` supports independent returns with `isReturn=True`, an inline `senderAddress`, and a saved `recipientAddressID`.
+- Added `examples/incoming_shipment.py`.
 
 ### 0.4.0
 
