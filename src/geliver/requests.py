@@ -22,7 +22,8 @@ class CreateAddressRequest(BaseModel):
 
 class CreateShipmentRequestBase(BaseModel):
     sourceCode: str
-    senderAddressID: str
+    senderAddressID: Optional[str] = None
+    senderAddress: Optional[Address] = None
     length: Optional[str] = None
     width: Optional[str] = None
     height: Optional[str] = None
@@ -31,6 +32,7 @@ class CreateShipmentRequestBase(BaseModel):
     massUnit: Optional[str] = None
     providerServiceCode: Optional[str] = None
     test: Optional[bool] = None
+    isReturn: Optional[bool] = None
 
 
 class CreateShipmentWithRecipientID(CreateShipmentRequestBase):

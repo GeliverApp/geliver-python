@@ -40,6 +40,10 @@ Türkiye’nin e‑ticaret gönderim altyapısı için kolay kargo entegrasyonu 
 7. Etiketleri indirin (PDF ve HTML dinamik etiket)
 8. İadeyi oluşturup etiketi henüz satın almamak için `create_return_shipment`; iadeyi oluşturup etiketi hemen satın almak için `create_return_transaction` kullanın
 
+### Gönderi adresi seçimi
+
+Yeni gönderide alıcı için `recipientAddressID` veya satır içi `recipientAddress` alanlarından birini verin. Gönderici için `senderAddressID` veya `senderAddress` kullanabilirsiniz; ikisini de vermezseniz backend kurumun varsayılan gönderici adresini kullanır. Bu kural normal ve iade dahil tüm yeni gönderilerde ve tek adım etiket satın alma akışında geçerlidir.
+
 ---
 
 ## Hızlı Başlangıç
@@ -180,12 +184,28 @@ print('Final status:', ts.get('trackingStatusCode') if ts else None, ts.get('tra
 
 ---
 
-## İade Gönderisi Oluşturun
+## Referans gönderi olmadan kargo bana gelecek
+
+Müşteriden size gelecek yeni gönderi için `create_shipment` isteğinde `isReturn=True` kullanın. İadede `recipientAddress` müşterinin kargonun alınacağı adresidir; `senderAddress` sizin teslim adresinizdir. Backend taşıyıcı için yönü ters çevirir. Aşağıdaki örnek sizin için varsayılan gönderici adresini kullanır. `test=True` yalnızca test içindir.
 
 ```python
-returned = client.create_return_shipment(shipment.id, {
-    'providerServiceCode': 'SURAT_STANDART',
+shipment = client.create_shipment({
+    'isReturn': True,
+    'test': True,
+    'recipientAddress': {
+        'name': 'Müşteri Adı', 'email': 'customer@example.com', 'phone': '+905051234567',
+        'address1': 'Örnek Mahallesi 1', 'countryCode': 'TR', 'cityCode': '34', 'districtName': 'Kadıköy', 'zip': '34000',
+    },
+    'length': '10', 'width': '10', 'height': '10', 'distanceUnit': 'cm', 'weight': '1', 'massUnit': 'kg',
 })
+```
+
+Tipli istek kullanan çalıştırılabilir örnek: `GELIVER_TOKEN=... python examples/incoming_shipment.py`. Etiketi satın almak için teklif kabul akışını kullanın.
+
+## Var olan gönderiye bağlı iade oluşturun
+
+```python
+returned = client.create_return_shipment(shipment.id, {})
 print(returned.id)
 ```
 
@@ -193,8 +213,8 @@ Not:
 
 - `create_return_shipment(...)` iadeyi oluşturur, etiketi satın almaz ve `Shipment` döner.
 - Etiketi daha sonra satın almak isterseniz, teklif hazır olduğunda normal satın alma akışını `accept_offer(...)` ile kullanabilirsiniz.
-- `providerServiceCode` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin sağlayıcısı kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
-- `senderAddress` alanı opsiyoneldir. Varsayılan olarak orijinal gönderinin alıcı adresi kullanılır; gerekirse bu alanı vererek değiştirebilirsiniz.
+- `providerServiceCode` yalnızca etiketi hemen satın alan iade akışında kullanılır; verilmezse orijinal gönderinin taşıyıcısı seçilir. Etiketi satın almadan iade oluştururken bu alan dikkate alınmaz.
+- İade müşteriden orijinal göndericiye gider. `senderAddress` ile müşterinin kargonun alınacağı adresini değiştirebilirsiniz; verilmezse orijinal alıcı adresi kullanılır. Adresleri SDK tarafında ters çevirmeyin. Bu referanslı iade endpoint’i yalnızca inline `senderAddress` kabul eder; yeni gönderi oluşturmadaki `recipientAddress`, `recipientAddressID` ve `senderAddressID` seçenekleri burada geçerli değildir.
 - `count` alanı opsiyoneldir (varsayılan `1`). Bu fonksiyon “tek shipment için tek iade” akışı içindir; genelde `1` kullanılmalıdır.
 
 İadeyi oluşturup etiketi hemen satın almak için:

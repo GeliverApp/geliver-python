@@ -6,10 +6,16 @@ This file documents notable changes in the SDK.
 
 ## Sürüm / Version
 
-- Türkçe: Bu değişiklikler `0.4.0` sürümü için hazırlandı.
-- English: These changes are prepared for version `0.4.0`.
+- Türkçe: Bu değişiklikler `0.5.0` sürümü için hazırlandı.
+- English: These changes are prepared for version `0.5.0`.
 
 ## Türkçe
+
+### 0.5.0
+
+- Tüm yeni gönderilerde alıcı adresi zorunludur; gönderici adresi verilmezse kurumun varsayılan gönderici adresi kullanılır.
+- `create_shipment(...)` ile `isReturn=True` ve gönderici/alıcı için bağımsız ID veya satır içi adres seçimi kullanılarak iade gönderisi oluşturulabilir.
+- `examples/incoming_shipment.py` eklendi.
 
 ### 0.4.0
 
@@ -27,6 +33,12 @@ This file documents notable changes in the SDK.
 - README örnekleri, etiketin daha sonra `accept_offer(...)` ile satın alınabileceğini açıklar.
 
 ## English
+
+### 0.5.0
+
+- All new shipments require a recipient address; the organization default sender address is used when no sender is provided.
+- `create_shipment(...)` supports independent returns with `isReturn=True`; the backend reverses the delivery direction for carriers.
+- Added `examples/incoming_shipment.py`.
 
 ### 0.4.0
 
